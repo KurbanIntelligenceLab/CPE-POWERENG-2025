@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter, find_peaks
 from scipy.stats import linregress
 
+import re
 
 # This script lists the files in a folder.
 def list_files(folder_path):
@@ -80,21 +81,28 @@ def calculate_bandgap(x, y, method_name, neighbor_size, image_folder, plot=False
     visualization_x = np.linspace(E_bandgap-0.2, x[best_region+neighbor_size]+0.2, 2)
 
     if plot:
-        plt.figure(figsize=(9, 6))
-        plt.ticklabel_format(axis='y', style='sci', scilimits=(4,4))
+        plt.figure(figsize=(6, 4))
+        plt.rcParams['lines.linewidth'] = 3  # Default line width for all plots
 
         plt.plot(x, y, label = "Data")
-        plt.plot(x_linear, y_linear, 'o', markersize=8, color='green', label = "Selected points for linear regression") 
+        plt.plot(x_linear, y_linear, 'o', markersize=8, color='green', label = "Selected points for\nlinear regression") 
         plt.plot(visualization_x, f(visualization_x, slope, intercept), '--', color='red')
         plt.scatter(E_bandgap, 0, marker='x', color='k', label="Bandgap = " + str(round(E_bandgap,3)))
         
-        plt.xlabel("Energy (eV)", fontsize=18)
-        plt.ylabel("Epsilon", fontsize=18)
-        plt.title("Tauc plot for dataset " + method_name)
-        plt.legend(loc='upper right')
+        # Get current tick locations and generate new labels divided by 10^4
+        yticks = plt.gca().get_yticks()
+        new_labels = ['{:.1f}'.format(y/10000) for y in yticks]
+        # Set fixed tick locations and new labels
+        plt.gca().set_yticks(yticks)
+        plt.gca().set_yticklabels(new_labels)
+
+        plt.xlabel("Energy (eV)", fontsize=14)
+        plt.ylabel('Absorbance ($\\times 10^4$)', fontsize=14)
+        plt.title(re.sub(r'60', r'$_{60}$', "Tauc plot for dataset " + method_name))
+        plt.legend(loc='upper right',fontsize=11)
         plt.grid()
 
-        plt.savefig(image_folder+"/"+method_name+'_bandgap.jpg', bbox_inches="tight", pad_inches=0.3, transparent=True)
+        plt.savefig(image_folder+"/"+method_name+'_bandgap.png', bbox_inches="tight", dpi=300)
         plt.show()
 
     return E_bandgap, best_region
@@ -142,16 +150,24 @@ def prepare_train_test_dataset(X_full, y_full, step_length, plot=False):
     y_test = y_full
 
     # Optionally plot the training and testing data in nm
-    if plot:
-        plt.style.use('seaborn-v0_8-poster')
-        #plt.figure(figsize=(15, 3))        
-        plt.figure(figsize=(9, 6))
-        plt.ticklabel_format(axis='y', style='sci', scilimits=(4,4))
-        plt.plot(X_test, y_test, 'b.', markersize=5, label='Full simulation data')
-        plt.plot(X_train, y_train, 'ro', markersize=5, label='Training data points')
-        plt.xlabel('Energy (nm)', color='black')
-        plt.ylabel('Epsilon', color='black')
-        plt.legend()
+    if plot:      
+        plt.figure(figsize=(6, 4))
+        plt.rcParams['lines.linewidth'] = 3  # Default line width for all plots
+        
+        plt.plot(X_test, y_test, 'b.', label='Full simulation data')
+        plt.plot(X_train, y_train, 'ro', label='Training data points')
+
+        # Get current tick locations and generate new labels divided by 10^4
+        yticks = plt.gca().get_yticks()
+        new_labels = ['{:.1f}'.format(y/10000) for y in yticks]
+        # Set fixed tick locations and new labels
+        plt.gca().set_yticks(yticks)
+        plt.gca().set_yticklabels(new_labels)
+
+        plt.xlabel('Energy (nm)', fontsize=14)
+        plt.ylabel('Absorbance ($\\times 10^4$)', fontsize=14)
+
+        plt.legend(fontsize=11)
         plt.show()
 
     # Convert energy units from nm (nanometers) to eV (electron volts)
@@ -180,14 +196,23 @@ def prepare_train_test_dataset(X_full, y_full, step_length, plot=False):
 
     # Optionally plot the training and testing data in eV
     if plot:
-        plt.style.use('seaborn-v0_8-poster')
-        plt.figure(figsize=(9, 6))
-        plt.ticklabel_format(axis='y', style='sci', scilimits=(4,4))
-        plt.plot(X_test, y_test, 'b.', markersize=5, label='Full simulation data')
-        plt.plot(X_train, y_train, 'ro', markersize=5, label='Training data points')
-        plt.xlabel('Energy (eV)', color='black')
-        plt.ylabel('Epsilon', color='black')
-        plt.legend()
+        plt.figure(figsize=(6, 4))
+        plt.rcParams['lines.linewidth'] = 3  # Default line width for all plots
+        
+        plt.plot(X_test, y_test, 'b.',  label='Full simulation data')
+        plt.plot(X_train, y_train, 'ro', label='Training data points')
+
+        # Get current tick locations and generate new labels divided by 10^4
+        yticks = plt.gca().get_yticks()
+        new_labels = ['{:.1f}'.format(y/10000) for y in yticks]
+        # Set fixed tick locations and new labels
+        plt.gca().set_yticks(yticks)
+        plt.gca().set_yticklabels(new_labels)
+
+        plt.xlabel('Energy (eV)', fontsize=14)
+        plt.ylabel('Absorbance ($\\times 10^4$)', fontsize=14)
+
+        plt.legend(fontsize=11)
         plt.show()
 
     return X_train, y_train, X_test, y_test
